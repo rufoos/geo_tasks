@@ -1,0 +1,3 @@
+/config/mongoid.yml
+/config/thin.yml
+/log

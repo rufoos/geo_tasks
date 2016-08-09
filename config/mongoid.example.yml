@@ -1,0 +1,29 @@
+development:
+  sessions:
+    default:
+      database: geotasks
+      hosts:
+        - 127.0.0.1:27017
+  options:
+    raise_not_found_error: false
+    use_utc: false
+
+test:
+  sessions:
+    default:
+      database: geotasks_test
+      hosts:
+        - 127.0.0.1:27017
+  options:
+    raise_not_found_error: false
+    use_utc: false
+
+production:
+  sessions:
+    default:
+      database: geotasks
+      hosts:
+        - 127.0.0.1:27017
+      options:
+        skip_version_check: true
+        safe: true
