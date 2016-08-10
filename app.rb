@@ -13,6 +13,13 @@ Dir.glob('./{models,lib}/*.rb').sort.each{ |file| require file }
 class ApplicationGeoTasks < Sinatra::Base
   set :root, File.dirname(__FILE__)
 
+  # Application config in application.yml
+  register Sinatra::AppConfig
+
+  # Warden Authentication
+  set :session_secret, settings.app_config['warden']['session_key']
+  register Sinatra::Auth
+
   helpers ApplicationHelper
 
   enable :sessions, :method_override
@@ -30,16 +37,22 @@ class ApplicationGeoTasks < Sinatra::Base
   end
 
   not_found do
-    view :'/error/404'
+    view '/error/404'
   end
 
-  def view(template, options = {})
-    content_type :json
-    jbuilder template.to_sym
+  set :auth do |*roles|
+    condition do
+      sign_in
+    end
   end
 
-  get '/' do
+  get '/', auth: :driver do
     view '/home/index'
+  end
+
+  post '/unauth' do
+    status 403
+    view '/error/403'
   end
 
 end

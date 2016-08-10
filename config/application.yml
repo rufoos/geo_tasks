@@ -1,0 +1,7 @@
+development:
+  warden:
+    session_key: 30e7e794f54edeabb9af84e14e1750c2
+
+test:
+  warden:
+    session_key: 30e7e794f54edeabb9af84e14e1750c2

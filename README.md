@@ -41,6 +41,7 @@ Create statistics report:
 1. Amount of tasks processed by driver
 1. Total distance by all tasks
 
+### Run
 
 Start server `bundle exec rerun --background -- thin start --port=4567 -R config.ru`
 Console `bundle exec irb -r ./app.rb`

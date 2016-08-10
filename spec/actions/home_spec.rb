@@ -1,9 +1,9 @@
 require File.expand_path '../../spec_helper.rb', __FILE__
 
-describe "ApplicationGeoTasks" do
-  it "soes allow accessing the index page" do
+describe ApplicationGeoTasks do
+  it "does disallow accessing the index page" do
     get '/'
-    expect(last_response).to be_ok
+    expect(last_response.status).to eq(403)
   end
 
   it 'does allow 404 page' do

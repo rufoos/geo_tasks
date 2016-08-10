@@ -10,4 +10,16 @@ class User
 
   has_many :tasks
 
+  before_create :created_timestamp
+
+  def self.authenticate_by_token(token)
+    User.where(auth_token: token).first
+  end
+
+  private
+
+  def created_timestamp
+    self.created_at = Time.now
+  end
+
 end
