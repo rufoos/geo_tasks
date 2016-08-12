@@ -24,6 +24,13 @@ describe ApplicationGeoTasks do
     }
     get '/', {}, headers
     expect(current_user).to be_nil
+  end
+
+  it 'does return 403 status if not authenticated user' do
+    headers = {
+      'AUTH_TOKEN' => '--wrong-token--'
+    }
+    get '/', {}, headers
     expect(last_response.status).to eq(403)
   end
 

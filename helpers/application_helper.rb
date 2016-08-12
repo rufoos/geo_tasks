@@ -1,8 +1,7 @@
 module ApplicationHelper
 
-  def view(template, options = {})
-    content_type :json
-    jbuilder template.to_sym, options
+  def view(template, opt = {}, locals = {})
+    jbuilder template.to_sym, opt, locals
   end
   
 end

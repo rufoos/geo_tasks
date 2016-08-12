@@ -1,5 +1,6 @@
 require 'rack/test'
 require 'rspec'
+require 'factory_girl'
 
 ENV['RACK_ENV'] = 'test'
 
@@ -15,4 +16,9 @@ end
 RSpec.configure do |c|
   c.include RSpecMixin
   c.include AuthHelper
+  c.include FactoryGirl::Syntax::Methods
+
+  c.before(:suite) do
+    FactoryGirl.find_definitions
+  end
 end
