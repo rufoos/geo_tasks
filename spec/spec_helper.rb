@@ -18,6 +18,10 @@ RSpec.configure do |c|
   c.include AuthHelper
   c.include FactoryGirl::Syntax::Methods
 
+  c.after do
+    FactoryGirl.reload
+  end
+
   c.before(:suite) do
     FactoryGirl.find_definitions
   end

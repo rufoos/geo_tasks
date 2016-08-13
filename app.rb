@@ -38,18 +38,23 @@ class ApplicationGeoTasks < Sinatra::Base
   end
 
   not_found do
-    view '/error/404'
+    view '/shared/error', {}, { msg: 'not found' }
   end
 
   error 403 do
     status 403
-    view '/error/403'
+    view '/shared/error', {}, { msg: 'forbidden' }
+  end
+
+  error Mongoid::Errors::DocumentNotFound do
+    halt 404
   end
 
   set :auth do |*roles|
     condition do
-      if !sign_in || !roles.include?(current_user.role)
-        403
+      sign_in
+      if current_user.nil? || !roles.flatten.include?(current_user.role)
+        halt 403
       end
     end
   end
@@ -61,7 +66,23 @@ class ApplicationGeoTasks < Sinatra::Base
   ## Params
   
   def task_params
-    parameters.required(:task).permit(:pickup, :delivery, :title)
+    parameters.required(:task).permit(:pickup_coord, :delivery_coord, :title)
+  end
+
+  def delete_task_params
+    parameters.required(:task).permit(:id)
+  end
+
+  def pickup_task_params
+    parameters.required(:task).permit(:id)
+  end
+
+  def delivered_task_params
+    parameters.required(:task).permit(:id)
+  end
+
+  def nearby_tasks_params
+    parameters.required(:coord).permit(:lat, :lng)
   end
 
   get '/', auth: 'manager' do
@@ -74,12 +95,63 @@ class ApplicationGeoTasks < Sinatra::Base
 
   ## Tasks
   
+  get '/nearby', auth: 'driver' do
+    begin
+      @tasks = Task.nearby(nearby_tasks_params[:lat], nearby_tasks_params[:lng])
+      view '/tasks/nearby'
+    rescue ParameterMissing => e
+      status 400
+      view '/shared/error', {}, { msg: 'missing some parameter' }
+    end
+  end
+
+  get '/pickup', auth: 'driver' do
+    begin
+      @task = Task.find(pickup_task_params[:id])
+      if @task.pickup!(current_user)
+        view '/shared/success', {}, { success: true }
+      else
+        view '/shared/error', {}, { msg: @task.errors.full_messages }
+      end
+    rescue ParameterMissing => e
+      status 400
+      view '/shared/error', {}, { msg: 'missing some parameter' }
+    end
+  end
+
+  put '/delivered', auth: 'driver' do
+    begin
+      @task = Task.find(pickup_task_params[:id])
+      if @task.delivered!
+        view '/shared/success', {}, { success: true }
+      else
+        view '/shared/error', {}, { msg: @task.errors.full_messages }
+      end
+    rescue ParameterMissing => e
+      status 400
+      view '/shared/error', {}, { msg: 'missing some parameter' }
+    end
+  end
+  
   post '/task', auth: 'manager' do
-    @task = Task.new(task_params)
+    @task = Task.new(task_params.merge(status: 'new'))
     if @task.save
       view '/tasks/show'
     else
-      view '/error/validation_error', {}, { object: @task }
+      status 400
+      view '/shared/error', {}, { msg: @task.errors.full_messages }
+    end
+  end
+
+  delete '/task', auth: 'manager' do
+    begin
+      if delete_task_params
+        @task = Task.find(delete_task_params[:id])
+        view '/shared/success', {}, { success: @task.destroy }
+      end
+    rescue ParameterMissing => e
+      status 400
+      view '/shared/error', {}, { msg: 'missing some parameter' }
     end
   end
 

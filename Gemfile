@@ -7,7 +7,7 @@ gem 'rake'
 gem "thin"
 
 # templater
-gem "tilt-jbuilder", ">= 0.4.0", :require => "sinatra/jbuilder"
+gem "tilt-jbuilder", :require => "sinatra/jbuilder"
 
 # Routing
 gem 'rack-mount'
@@ -16,6 +16,7 @@ gem 'rack-mount'
 gem 'mongoid'
 gem 'bson_ext'
 gem 'mongoid-paranoia'
+gem 'mongoid-geospatial'
 
 # auth
 gem 'warden'

@@ -2,7 +2,7 @@ module Sinatra
   module Parameters
     class ParameterMissing < IndexError
       def initialize(key)
-        puts "[Parameters] Missing parameter with key: #{key}"
+        "[Parameters] Missing parameter with key: #{key}"
       end
     end
 
