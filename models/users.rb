@@ -6,7 +6,6 @@ class User
   field :role, type: String
   field :created_at, type: Time
   field :updated_at, type: Time, default: Time.now
-  field :deleted_at, type: Time
 
   has_many :tasks
 

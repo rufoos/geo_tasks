@@ -40,6 +40,13 @@ describe ApplicationGeoTasks do
       expect(last_response.body).to include('missing some parameter')
     end
 
+    it 'does cannot change task status' do
+      FactoryGirl.create(:task)
+      last_new_task_id = Task.newest.last.id
+      put '/delivered', { task: { id: last_new_task_id } }, headers
+      expect(last_response.status).to eq(403)
+    end
+
   end
 
   context 'driver' do

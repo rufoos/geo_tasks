@@ -50,6 +50,11 @@ class ApplicationGeoTasks < Sinatra::Base
     halt 404
   end
 
+  error ParameterMissing do
+    status 400
+    view '/shared/error', {}, { msg: 'missing some parameter' }
+  end
+
   set :auth do |*roles|
     condition do
       sign_in
@@ -96,40 +101,25 @@ class ApplicationGeoTasks < Sinatra::Base
   ## Tasks
   
   get '/nearby', auth: 'driver' do
-    begin
-      @tasks = Task.nearby(nearby_tasks_params[:lat], nearby_tasks_params[:lng])
-      view '/tasks/nearby'
-    rescue ParameterMissing => e
-      status 400
-      view '/shared/error', {}, { msg: 'missing some parameter' }
-    end
+    @tasks = Task.nearby(nearby_tasks_params[:lat], nearby_tasks_params[:lng])
+    view '/tasks/nearby'
   end
 
   get '/pickup', auth: 'driver' do
-    begin
-      @task = Task.find(pickup_task_params[:id])
-      if @task.pickup!(current_user)
-        view '/shared/success', {}, { success: true }
-      else
-        view '/shared/error', {}, { msg: @task.errors.full_messages }
-      end
-    rescue ParameterMissing => e
-      status 400
-      view '/shared/error', {}, { msg: 'missing some parameter' }
+    @task = Task.find(pickup_task_params[:id])
+    if @task.pickup!(current_user)
+      view '/shared/success', {}, { success: true }
+    else
+      view '/shared/error', {}, { msg: @task.errors.full_messages }
     end
   end
 
   put '/delivered', auth: 'driver' do
-    begin
-      @task = Task.find(pickup_task_params[:id])
-      if @task.delivered!
-        view '/shared/success', {}, { success: true }
-      else
-        view '/shared/error', {}, { msg: @task.errors.full_messages }
-      end
-    rescue ParameterMissing => e
-      status 400
-      view '/shared/error', {}, { msg: 'missing some parameter' }
+    @task = Task.find(pickup_task_params[:id])
+    if @task.delivered!
+      view '/shared/success', {}, { success: true }
+    else
+      view '/shared/error', {}, { msg: @task.errors.full_messages }
     end
   end
   
@@ -144,15 +134,8 @@ class ApplicationGeoTasks < Sinatra::Base
   end
 
   delete '/task', auth: 'manager' do
-    begin
-      if delete_task_params
-        @task = Task.find(delete_task_params[:id])
-        view '/shared/success', {}, { success: @task.destroy }
-      end
-    rescue ParameterMissing => e
-      status 400
-      view '/shared/error', {}, { msg: 'missing some parameter' }
-    end
+    @task = Task.find(delete_task_params[:id])
+    view '/shared/success', {}, { success: @task.destroy }
   end
 
 end
