@@ -65,6 +65,7 @@ class ApplicationGeoTasks < Sinatra::Base
   end
 
   before do
+    parse_body_json_params
     content_type :json
   end
 
@@ -90,7 +91,7 @@ class ApplicationGeoTasks < Sinatra::Base
     parameters.required(:coord).permit(:lat, :lng)
   end
 
-  get '/', auth: 'manager' do
+  get '/' do
     view '/home/index'
   end
 
@@ -100,12 +101,12 @@ class ApplicationGeoTasks < Sinatra::Base
 
   ## Tasks
   
-  get '/nearby', auth: 'driver' do
+  post '/nearby', auth: 'driver' do
     @tasks = Task.nearby(nearby_tasks_params[:lat], nearby_tasks_params[:lng])
     view '/tasks/nearby'
   end
 
-  get '/pickup', auth: 'driver' do
+  post '/pickup', auth: 'driver' do
     @task = Task.find(pickup_task_params[:id])
     if @task.pickup!(current_user)
       view '/shared/success', {}, { success: true }
@@ -126,6 +127,7 @@ class ApplicationGeoTasks < Sinatra::Base
   post '/task', auth: 'manager' do
     @task = Task.new(task_params.merge(status: 'new'))
     if @task.save
+      Task.create_indexes
       view '/tasks/show'
     else
       status 400

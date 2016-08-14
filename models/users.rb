@@ -9,6 +9,9 @@ class User
 
   has_many :tasks
 
+  # Validates
+  validates :role, inclusion: { in: %w(driver manager), message: '"%{value}" is not a valid value' }
+
   before_create :created_timestamp
 
   def self.authenticate_by_token(token)

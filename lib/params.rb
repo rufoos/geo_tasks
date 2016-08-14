@@ -38,6 +38,8 @@ module Sinatra
                   end
                 elsif (filter.is_a?(String) || filter.is_a?(Symbol)) && !param[filter.to_s].nil?
                   { filter => param[filter.to_s] }
+                else
+                  raise(ParameterMissing.new(filter))
                 end
               if permitted
                 if permitted_params.key?(key)
@@ -55,11 +57,21 @@ module Sinatra
                 { filter => params[filter.keys.first] } if params[filter.keys.first].is_a?(filter.values.first.class)
               elsif (filter.is_a?(String) || filter.is_a?(Symbol)) && !params[filter.to_s].nil?
                 { filter => params[filter.to_s] }
+              else
+                raise(ParameterMissing.new(filter))
               end
             permitted_params.merge!(permitted) if permitted
           end
         end
         permitted_params
+      end
+    end
+
+    def parse_body_json_params
+      request.body.rewind
+      req_body = request.body.read
+      if req_body.present?
+        @params = JSON.parse(req_body)
       end
     end
 

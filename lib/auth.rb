@@ -1,6 +1,6 @@
 Warden::Strategies.add(:token) do
   def valid?
-    params['token'].present? || env['AUTH_TOKEN'].present?
+    token
   end
 
   def authenticate!
@@ -11,7 +11,15 @@ Warden::Strategies.add(:token) do
   end
 
   def token
-    params['token'] || env['AUTH_TOKEN']
+    body_token = nil
+    request.body.rewind
+    req_body = request.body.read
+    if req_body.present?
+      body_json = JSON.parse(req_body)
+      body_token = body_json['token']
+    end
+    
+    body_token || params['token'] || env['AUTH_TOKEN']
   end
 end
 
