@@ -3,14 +3,25 @@ require 'json'
 
 describe ApplicationGeoTasks do
 
-  let(:headers){ { 'CONTENT_TYPE' => 'application/json', 'ACCEPT' => 'application/json' } }
+  let(:headers){
+    {
+      'CONTENT_TYPE' => 'application/json',
+      'ACCEPT' => 'application/json'
+    }
+  }
   
   context 'manager' do
     before do
       @manager = User.create(auth_token: '--manager-token--', role: 'manager', name: 'Budd')
     end
     
-    let(:headers_with_token){ { 'CONTENT_TYPE' => 'application/json', 'ACCEPT' => 'application/json', 'AUTH_TOKEN' => '--manager-token--' } }
+    let(:headers_with_token){
+      {
+        'CONTENT_TYPE' => 'application/json',
+        'ACCEPT' => 'application/json',
+        'AUTH_TOKEN' => '--manager-token--'
+      }
+    }
 
     it 'does manager available access for create task' do
       params = { task: { pickup_coord: { lat: 1.1, lng: 1.1 }, delivery_coord: { lat: 2.2, lng: 2.2 }, title: 'Hatory Hanzo sword' } }
@@ -64,7 +75,13 @@ describe ApplicationGeoTasks do
       @driver = User.create(auth_token: '--driver-token--', role: 'driver', name: 'Elle')
     end
 
-    let(:headers_with_token){ { 'CONTENT_TYPE' => 'application/json', 'ACCEPT' => 'application/json', 'AUTH_TOKEN' => '--driver-token--' } }
+    let(:headers_with_token){
+      {
+        'CONTENT_TYPE' => 'application/json',
+        'ACCEPT' => 'application/json',
+        'AUTH_TOKEN' => '--driver-token--'
+      }
+    }
 
     it 'does driver available access for pickup task by token in params' do
       FactoryGirl.create(:task)

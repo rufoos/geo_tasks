@@ -140,4 +140,13 @@ class ApplicationGeoTasks < Sinatra::Base
     view '/shared/success', {}, { success: @task.destroy }
   end
 
+  ## Statistics
+  
+  post '/stat', auth: 'manager' do
+    @drivers = User.where(role: 'driver').to_a
+    @stats = Task.stat('$driver_id', { status: 'done' })
+    @total_length = Task.stat.first
+    view '/tasks/stat'
+  end
+
 end

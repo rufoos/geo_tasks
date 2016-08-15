@@ -74,5 +74,9 @@ FactoryGirl.define do
     trait :assigned do
       status 'assigned'
     end
+
+    trait :done do
+      status 'done'
+    end
   end
 end

@@ -9,14 +9,13 @@ gem "thin"
 # templater
 gem "tilt-jbuilder", :require => "sinatra/jbuilder"
 
-# Routing
-gem 'rack-mount'
-
 # DataBase
 gem 'mongoid'
 gem 'bson_ext'
 gem 'mongoid-paranoia'
 gem 'mongoid-geospatial'
+
+gem 'rgeo'
 
 # auth
 gem 'warden'

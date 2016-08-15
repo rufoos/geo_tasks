@@ -43,5 +43,6 @@ Create statistics report:
 
 ### Run
 
-Start server `bundle exec rerun --background -- thin start --port=4567 -R config.ru`
-Console `bundle exec irb -r ./app.rb`
+Fill database: `rake db:seed`
+Start server: `bundle exec rerun --background -- thin start --port=4567 -R config.ru`
+Console: `bundle exec irb -r ./app.rb`
