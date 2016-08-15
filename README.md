@@ -1,7 +1,6 @@
 Geo Tasks
 ========
 
-# geo-tasks
 Geo based tasks tracker
 
 Build a sinatra API to work with geo-based tasks. Use ruby 2.3 and mongoDB (recommended). All API endpoints should work with json body (not form-data). The result should be available as github repo with commit history and the code covered by specs. Please commit the significant step to git, we want to see how you evolved the code.
@@ -44,5 +43,7 @@ Create statistics report:
 ### Run
 
 Fill database: `rake db:seed`
+
 Start server: `bundle exec rerun --background -- thin start --port=4567 -R config.ru`
+
 Console: `bundle exec irb -r ./app.rb`
