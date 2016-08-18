@@ -6,13 +6,9 @@ gem 'rake'
 # server, to run: bundle exec thin -p 4567 start
 gem "thin"
 
-# templater
-gem "tilt-jbuilder", :require => "sinatra/jbuilder"
-
 # DataBase
 gem 'mongoid'
 gem 'bson_ext'
-gem 'mongoid-paranoia'
 gem 'mongoid-geospatial'
 
 gem 'rgeo'

@@ -1,6 +1,5 @@
 class Task
   include Mongoid::Document
-  include Mongoid::Paranoia
   include Mongoid::Geospatial
 
   field :title, type: String, default: ''
@@ -15,6 +14,7 @@ class Task
   belongs_to :driver, class_name: 'User'
 
   # Validates
+  validates :title, :pickup_coord, :delivery_coord, presence: true
   validates :status, inclusion: { in: %w(new assigned done), message: '"%{value}" is not a valid value' }
 
   before_create :calculate_length

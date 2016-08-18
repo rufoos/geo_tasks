@@ -4,6 +4,7 @@ require 'sinatra/base'
 require 'bson'
 require 'mongoid'
 require 'pry'
+require 'json'
 
 Bundler.require
 
@@ -14,14 +15,10 @@ class ApplicationGeoTasks < Sinatra::Base
   set :root, File.dirname(__FILE__)
   set :show_exceptions, false
 
-  # Application config in application.yml
-  register Sinatra::AppConfig
-
   # Warden Authentication
   register Sinatra::Auth
 
   helpers ApplicationHelper
-  helpers Sinatra::Parameters
 
   enable :sessions, :method_override
   enable :raise_exceptions
@@ -38,21 +35,26 @@ class ApplicationGeoTasks < Sinatra::Base
   end
 
   not_found do
-    view '/shared/error', {}, { msg: 'not found' }
+    json error_msg: 'not found'
   end
 
   error 403 do
     status 403
-    view '/shared/error', {}, { msg: 'forbidden' }
+    json error_msg: 'forbidden'
   end
 
   error Mongoid::Errors::DocumentNotFound do
     halt 404
   end
 
-  error ParameterMissing do
+  error Mongoid::Errors::InvalidFind do
     status 400
-    view '/shared/error', {}, { msg: 'missing some parameter' }
+    json error_msg: 'invalid field for find'
+  end
+
+  error RuntimeError do
+    status 400
+    json error_msg: 'runtime error'
   end
 
   set :auth do |*roles|
@@ -69,30 +71,8 @@ class ApplicationGeoTasks < Sinatra::Base
     content_type :json
   end
 
-  ## Params
-  
-  def task_params
-    parameters.required(:task).permit(:pickup_coord, :delivery_coord, :title)
-  end
-
-  def delete_task_params
-    parameters.required(:task).permit(:id)
-  end
-
-  def pickup_task_params
-    parameters.required(:task).permit(:id)
-  end
-
-  def delivered_task_params
-    parameters.required(:task).permit(:id)
-  end
-
-  def nearby_tasks_params
-    parameters.required(:coord).permit(:lat, :lng)
-  end
-
   get '/' do
-    view '/home/index'
+    json content: 'hello geo tasks'
   end
 
   post '/unauth' do
@@ -102,51 +82,96 @@ class ApplicationGeoTasks < Sinatra::Base
   ## Tasks
   
   post '/nearby', auth: 'driver' do
-    @tasks = Task.nearby(nearby_tasks_params[:lat], nearby_tasks_params[:lng])
-    view '/tasks/nearby'
+    tasks = Task.nearby(params[:lat], params[:lng])
+    res =
+      tasks.map do |task|
+        {
+          id: task['_id'],
+          title: task['title'],
+          pickup_coord: { lat: task['pickup_coord'].last, lng: task['pickup_coord'].first },
+          delivery_coord: { lat: task['delivery_coord'].last, lng: task['delivery_coord'].first },
+          distance: task['dist']['calculated'],
+          status: task['status'],
+          created_at: task['created_at'],
+          updated_at: task['updated_at']
+        }
+      end
+    json res
   end
 
   post '/pickup', auth: 'driver' do
-    @task = Task.find(pickup_task_params[:id])
-    if @task.pickup!(current_user)
-      view '/shared/success', {}, { success: true }
+    task = Task.find(params[:id])
+    if task.pickup!(current_user)
+      json success: true
     else
-      view '/shared/error', {}, { msg: @task.errors.full_messages }
+      json error_msg: task.errors.full_messages
     end
   end
 
   put '/delivered', auth: 'driver' do
-    @task = Task.find(pickup_task_params[:id])
-    if @task.delivered!
-      view '/shared/success', {}, { success: true }
+    task = Task.find(params[:id])
+    if task.delivered!
+      json success: true
     else
-      view '/shared/error', {}, { msg: @task.errors.full_messages }
+      json error_msg: task.errors.full_messages
     end
   end
   
   post '/task', auth: 'manager' do
-    @task = Task.new(task_params.merge(status: 'new'))
-    if @task.save
+    task = Task.new(params.merge(status: 'new'))
+    if task.save
       Task.create_indexes
-      view '/tasks/show'
+      res = {
+        id: task.id,
+        title: task.title,
+        pickip_coord: {
+          lat: task.pickup_coord.to_hsh(:lat, :lng)[:lat],
+          lng: task.pickup_coord.to_hsh(:lat, :lng)[:lng]
+        },
+        delivery_coord: {
+          lat: task.delivery_coord.to_hsh(:lat, :lng)[:lat],
+          lng: task.delivery_coord.to_hsh(:lat, :lng)[:lng]
+        },
+        status: task.status,
+        created_at: task.created_at,
+        updated_at: task.updated_at
+      }
+      json res
     else
       status 400
-      view '/shared/error', {}, { msg: @task.errors.full_messages }
+      json error_msg: task.errors.full_messages
     end
   end
 
   delete '/task', auth: 'manager' do
-    @task = Task.find(delete_task_params[:id])
-    view '/shared/success', {}, { success: @task.destroy }
+    task = Task.find(params[:id])
+    json success: task.destroy
   end
 
   ## Statistics
   
   post '/stat', auth: 'manager' do
-    @drivers = User.where(role: 'driver').to_a
-    @stats = Task.stat('$driver_id', { status: 'done' })
-    @total_length = Task.stat.first
-    view '/tasks/stat'
+    drivers = User.where(role: 'driver').to_a
+    stats = Task.stat('$driver_id', { status: 'done' })
+    total_length = Task.stat.first
+
+    res_stats =
+      stats.map do |stat|
+        sel_driver = drivers.select{ |d| d.id == stat['_id'] }.first
+        {
+          driver: { id: sel_driver.id, name: sel_driver.name },
+          total_length: stat['totalLength'],
+          processed_tasks: stat['count']
+        }
+      end
+    res = { by_drivers: res_stats }
+    if total_length
+      res.merge!({
+        total: { length: total_length['totalLength'], tasks: total_length['count'] }
+      })
+    end
+
+    json res
   end
 
 end
