@@ -30,4 +30,10 @@ group :test do
   gem 'rspec'
   gem "factory_girl", "~> 4.0"
   gem 'database_cleaner'
+
+  gem 'mutant', :git => 'https://github.com/mbj/mutant.git'
+  gem 'mutant-rspec'
+  gem 'rspec-expectations'
+  gem 'rspec-mocks'
+  gem 'pry-byebug'
 end
